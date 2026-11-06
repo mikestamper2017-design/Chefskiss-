@@ -1,0 +1,71 @@
+[
+  {
+    "id": 1,
+    "title": "Pan-Seared Salmon with Asparagus & Quinoa",
+    "category": "Seafood Special",
+    "estCostPerMeal": 21.50,
+    "servings": 4,
+    "saleBadge": "Atlantic Salmon Deal at Vos' YIG",
+    "image": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=600&q=80",
+    "ingredients": [
+      { "name": "Atlantic Salmon Fillets", "qty": 4, "unit": "pieces", "price": 12.99, "category": "Meat & Seafood", "store": "vos", "isPantry": false },
+      { "name": "Fresh Asparagus", "qty": 1, "unit": "bunch", "price": 3.49, "category": "Produce", "store": "vos", "isPantry": false },
+      { "name": "Quinoa", "qty": 1, "unit": "bag", "price": 2.50, "category": "Pantry", "store": "costco", "isPantry": false },
+      { "name": "Olive Oil", "qty": 2, "unit": "tbsp", "price": 0.40, "category": "Pantry", "store": "costco", "isPantry": true }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Sheet Pan Chicken Fajitas",
+    "category": "Family Favorites",
+    "estCostPerMeal": 17.50,
+    "servings": 4,
+    "saleBadge": "Bulk Peppers & Chicken at Costco",
+    "image": "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80",
+    "ingredients": [
+      { "name": "Chicken Breasts (Bulk)", "qty": 1, "unit": "kg", "price": 10.99, "category": "Meat & Seafood", "store": "costco", "isPantry": false },
+      { "name": "Bell Peppers (3 Pack)", "qty": 1, "unit": "pack", "price": 3.99, "category": "Produce", "store": "costco", "isPantry": false },
+      { "name": "Flour Tortillas", "qty": 1, "unit": "pack", "price": 2.50, "category": "Bakery", "store": "walmart", "isPantry": false }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Garlic Butter Steak Bites & Broccoli",
+    "category": "High Protein",
+    "estCostPerMeal": 19.50,
+    "servings": 4,
+    "saleBadge": "Striploin Steak Deal at Costco",
+    "image": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80",
+    "ingredients": [
+      { "name": "Beef Striploin Cuts", "qty": 2, "unit": "packs", "price": 13.99, "category": "Meat & Seafood", "store": "costco", "isPantry": false },
+      { "name": "Fresh Broccoli Crowns", "qty": 2, "unit": "heads", "price": 3.50, "category": "Produce", "store": "vos", "isPantry": false }
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Lemon Herb Roasted Chicken Thighs",
+    "category": "Quick & Easy",
+    "estCostPerMeal": 14.00,
+    "servings": 4,
+    "saleBadge": "Chicken Thigh Value Pack at Vos' YIG",
+    "image": "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=600&q=80",
+    "ingredients": [
+      { "name": "Bone-In Chicken Thighs", "qty": 1, "unit": "tray", "price": 9.50, "category": "Meat & Seafood", "store": "vos", "isPantry": false },
+      { "name": "Baby Potatoes", "qty": 1, "unit": "bag", "price": 3.50, "category": "Produce", "store": "costco", "isPantry": false }
+    ]
+  },
+  {
+    "id": 5,
+    "title": "Shrimp & Pesto Linguine Pasta",
+    "category": "Quick & Easy",
+    "estCostPerMeal": 18.00,
+    "servings": 4,
+    "saleBadge": "Jumbo Shrimp Bulk Special at Costco",
+    "image": "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=600&q=80",
+    "ingredients": [
+      { "name": "Frozen Jumbo Shrimp", "qty": 1, "unit": "bag", "price": 11.99, "category": "Meat & Seafood", "store": "costco", "isPantry": false },
+      { "name": "Basil Pesto Sauce", "qty": 1, "unit": "jar", "price": 4.50, "category": "Pantry", "store": "vos", "isPantry": false },
+      { "name": "Linguine Pasta", "qty": 1, "unit": "box", "price": 1.99, "category": "Pantry", "store": "walmart", "isPantry": false }
+    ]
+  }
+]
