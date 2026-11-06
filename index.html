@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>FreshPlan - Meal Planning & Grocery App</title>
+  <title>FreshPlan - Custom Meal & Grocery Planner</title>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -15,73 +15,86 @@
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="bg-gray-50 text-gray-900 pb-20">
+<body class="bg-gray-100 text-gray-900 min-h-screen">
   <div id="root"></div>
 
   <script type="text/babel">
     const { useState, useMemo } = React;
 
     const STORES = [
-      { id: 'all', name: 'All Stores (Split Shopping List)', icon: 'fa-store', badge: 'Smart Split' },
-      { id: 'vos', name: "Vos' YIG (Port Perry)", icon: 'fa-basket-shopping', color: 'bg-red-600', fulfill: 'PC Express Pickup' },
-      { id: 'walmart', name: 'Walmart (North Oshawa)', icon: 'fa-cart-shopping', color: 'bg-blue-600', fulfill: 'Walmart Pickup / Delivery' },
-      { id: 'costco', name: 'Costco (North Oshawa)', icon: 'fa-box', color: 'bg-amber-600', fulfill: 'Costco / Instacart' }
+      { id: 'smart_split', name: 'Smart Split (Best Value Across All 3)', icon: 'fa-layer-group', desc: 'Routes bulk to Costco, specialty produce to Vos, staples to Walmart' },
+      { id: 'vos', name: "Vos' YIG (Port Perry)", icon: 'fa-basket-shopping', desc: 'Local produce, fresh meat, specialty & bakery' },
+      { id: 'walmart', name: 'Walmart Supercentre (North Oshawa)', icon: 'fa-cart-shopping', desc: 'Pantry staples, frozen goods, household items' },
+      { id: 'costco', name: 'Costco Wholesale (North Oshawa)', icon: 'fa-box', desc: 'Bulk proteins, produce packs, dairy & snacks' }
     ];
 
     const RECIPES = [
       {
         id: 1,
         title: "Grilled Salmon & Asparagus",
-        category: "Healthy & Quick",
-        prepTime: "20 mins",
+        category: "Quick & Easy",
+        estCostPerMeal: 22.50,
         servings: 4,
         image: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=600&q=80",
         ingredients: [
-          { name: "Salmon Fillets", qty: 4, unit: "pieces", category: "Meat & Seafood", store: "costco" },
-          { name: "Fresh Asparagus", qty: 1, unit: "bunch", category: "Produce", store: "vos" },
-          { name: "Olive Oil", qty: 2, unit: "tbsp", category: "Pantry", store: "costco" },
-          { name: "Lemon", qty: 2, unit: "items", category: "Produce", store: "vos" },
-          { name: "Garlic Powder", qty: 1, unit: "tsp", category: "Pantry", store: "walmart" }
+          { name: "Salmon Fillets (4 pack)", qty: 1, unit: "pack", price: 16.99, category: "Meat & Seafood", store: "costco" },
+          { name: "Fresh Asparagus", qty: 1, unit: "bunch", price: 3.99, category: "Produce", store: "vos" },
+          { name: "Lemon", qty: 2, unit: "items", price: 1.50, category: "Produce", store: "vos" }
         ]
       },
       {
         id: 2,
         title: "Sheet Pan Chicken Fajitas",
         category: "Family Favorites",
-        prepTime: "25 mins",
+        estCostPerMeal: 18.00,
         servings: 4,
         image: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80",
         ingredients: [
-          { name: "Chicken Breasts", qty: 3, unit: "large", category: "Meat & Seafood", store: "costco" },
-          { name: "Bell Peppers (3 Pack)", qty: 1, unit: "pack", category: "Produce", store: "costco" },
-          { name: "Yellow Onion", qty: 2, unit: "items", category: "Produce", store: "vos" },
-          { name: "Tortillas (Flour)", qty: 1, unit: "pack", category: "Bakery", store: "walmart" },
-          { name: "Fajita Seasoning", qty: 1, unit: "packet", category: "Pantry", store: "walmart" },
-          { name: "Salsa", qty: 1, unit: "jar", category: "Pantry", store: "walmart" }
+          { name: "Chicken Breasts", qty: 1, unit: "kg", price: 11.50, category: "Meat & Seafood", store: "costco" },
+          { name: "Bell Peppers (3 Pack)", qty: 1, unit: "pack", price: 3.99, category: "Produce", store: "costco" },
+          { name: "Tortillas (Flour)", qty: 1, unit: "pack", price: 2.50, category: "Bakery", store: "walmart" }
         ]
       },
       {
         id: 3,
-        title: "Greek Avocado Salad",
+        title: "Greek Salad & Avocado Bowls",
         category: "Low Carb",
-        prepTime: "15 mins",
+        estCostPerMeal: 14.00,
         servings: 2,
         image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=600&q=80",
         ingredients: [
-          { name: "Avocados", qty: 3, unit: "items", category: "Produce", store: "costco" },
-          { name: "English Cucumber", qty: 1, unit: "item", category: "Produce", store: "vos" },
-          { name: "Cherry Tomatoes", qty: 1, unit: "pint", category: "Produce", store: "vos" },
-          { name: "Feta Cheese", qty: 200, unit: "g", category: "Dairy", store: "costco" },
-          { name: "Kalamata Olives", qty: 1, unit: "jar", category: "Pantry", store: "walmart" }
+          { name: "Avocados (5 pack)", qty: 1, unit: "bag", price: 5.99, category: "Produce", store: "costco" },
+          { name: "English Cucumber", qty: 1, unit: "item", price: 1.49, category: "Produce", store: "vos" },
+          { name: "Feta Cheese", qty: 1, unit: "block", price: 6.50, category: "Dairy", store: "vos" }
+        ]
+      },
+      {
+        id: 4,
+        title: "Grass-Fed Beef Meatball Pasta",
+        category: "Family Favorites",
+        estCostPerMeal: 16.50,
+        servings: 4,
+        image: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=600&q=80",
+        ingredients: [
+          { name: "Lean Ground Beef", qty: 1, unit: "pack", price: 8.99, category: "Meat & Seafood", store: "costco" },
+          { name: "Penne Pasta", qty: 1, unit: "box", price: 1.99, category: "Pantry", store: "walmart" },
+          { name: "Marinara Sauce", qty: 1, unit: "jar", price: 3.50, category: "Pantry", store: "walmart" }
         ]
       }
     ];
 
     function App() {
-      const [activeTab, setActiveTab] = useState('menu');
-      const [selectedStore, setSelectedStore] = useState('all');
+      // Step Tracking: 1 = Setup, 2 = Menu Selection, 3 = Final Grocery List
+      const [step, setStep] = useState(1);
+
+      // Onboarding Preferences
+      const [weeklyBudget, setWeeklyBudget] = useState(175);
+      const [mealsPerWeek, setMealsPerWeek] = useState(4);
+      const [servingsPerMeal, setServingsPerMeal] = useState(4);
+      const [primaryStore, setPrimaryStore] = useState('smart_split');
+
+      // Meal Selection
       const [selectedRecipes, setSelectedRecipes] = useState([1, 2]);
-      const [servingsMap, setServingsMap] = useState({ 1: 4, 2: 4, 3: 2 });
       const [checkedItems, setCheckedItems] = useState({});
 
       const toggleRecipe = (id) => {
@@ -90,211 +103,295 @@
         );
       };
 
-      const updateServings = (id, delta) => {
-        setServingsMap(prev => ({
-          ...prev,
-          [id]: Math.max(1, (prev[id] || 4) + delta)
-        }));
-      };
+      // Cost Calculation
+      const totalEstimatedCost = useMemo(() => {
+        return selectedRecipes.reduce((sum, id) => {
+          const recipe = RECIPES.find(r => r.id === id);
+          return sum + (recipe ? recipe.estCostPerMeal : 0);
+        }, 0);
+      }, [selectedRecipes]);
 
+      // Aggregated Grocery Items
       const aggregatedList = useMemo(() => {
         const items = {};
         selectedRecipes.forEach(rId => {
           const recipe = RECIPES.find(r => r.id === rId);
           if (!recipe) return;
-          const baseServings = recipe.servings;
-          const currentServings = servingsMap[rId] || baseServings;
-          const ratio = currentServings / baseServings;
 
           recipe.ingredients.forEach(ing => {
-            if (selectedStore !== 'all' && ing.store !== selectedStore) return;
+            // Store filtering
+            if (primaryStore !== 'smart_split' && ing.store !== primaryStore) return;
 
             const key = `${ing.name}-${ing.unit}`;
-            const adjustedQty = Math.round((ing.qty * ratio) * 10) / 10;
-
             if (items[key]) {
-              items[key].qty += adjustedQty;
+              items[key].qty += ing.qty;
+              items[key].price += ing.price;
             } else {
-              items[key] = {
-                ...ing,
-                qty: adjustedQty,
-                key
-              };
+              items[key] = { ...ing, key };
             }
           });
         });
         return Object.values(items);
-      }, [selectedRecipes, servingsMap, selectedStore]);
+      }, [selectedRecipes, primaryStore]);
 
       const toggleCheck = (key) => {
         setCheckedItems(prev => ({ ...prev, [key]: !prev[key] }));
       };
 
       return (
-        <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg flex flex-col">
+        <div className="max-w-md mx-auto bg-white min-h-screen shadow-xl flex flex-col">
           {/* Header */}
-          <header className="bg-emerald-700 text-white p-4 sticky top-0 z-20 shadow-md">
-            <div className="flex justify-between items-center mb-2">
-              <h1 className="text-xl font-bold tracking-tight"><i className="fa-solid fa-utensils mr-2"></i>FreshPlan</h1>
-              <span className="text-xs bg-emerald-800 text-emerald-100 px-2.5 py-1 rounded-full font-medium">
-                {selectedRecipes.length} Meals Chosen
-              </span>
+          <header className="bg-emerald-800 text-white p-4 sticky top-0 z-20 shadow-md">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-xl font-black tracking-wide"><i className="fa-solid fa-basket-shopping text-emerald-400 mr-2"></i>FreshPlan</h1>
+                <p className="text-[11px] text-emerald-200">Port Perry & North Oshawa Grocery Planner</p>
+              </div>
+              <div className="text-right">
+                <span className="text-xs bg-emerald-900/80 border border-emerald-600 px-2.5 py-1 rounded-full font-bold">
+                  Step {step} of 3
+                </span>
+              </div>
             </div>
-            
-            {/* Store Selector */}
-            <div className="mt-2">
-              <label className="text-xs text-emerald-100 font-medium block mb-1">Target Shopping Location:</label>
-              <select 
-                value={selectedStore} 
-                onChange={(e) => setSelectedStore(e.target.value)}
-                className="w-full bg-emerald-800 text-white text-sm font-semibold rounded-lg px-3 py-2 border border-emerald-600 focus:outline-none focus:ring-2 focus:ring-white"
-              >
-                {STORES.map(store => (
-                  <option key={store.id} value={store.id}>
-                    {store.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+
+            {/* Budget Bar (Visible in Step 2 & 3) */}
+            {step > 1 && (
+              <div className="mt-3 pt-3 border-t border-emerald-700">
+                <div className="flex justify-between text-xs font-semibold mb-1">
+                  <span>Est. Total: ${totalEstimatedCost.toFixed(2)}</span>
+                  <span>Weekly Budget: ${weeklyBudget}</span>
+                </div>
+                <div className="w-full bg-emerald-950 rounded-full h-2.5 overflow-hidden">
+                  <div 
+                    className={`h-2.5 transition-all duration-500 ${totalEstimatedCost > weeklyBudget ? 'bg-amber-400' : 'bg-emerald-400'}`}
+                    style={{ width: `${Math.min(100, (totalEstimatedCost / weeklyBudget) * 100)}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
           </header>
 
-          {/* Navigation Tabs */}
-          <div className="flex border-b border-gray-200 bg-white sticky top-[105px] z-10">
-            <button 
-              onClick={() => setActiveTab('menu')}
-              className={`flex-1 py-3 text-center text-sm font-semibold border-b-2 transition-colors ${activeTab === 'menu' ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-gray-500'}`}
-            >
-              <i className="fa-solid fa-book-open mr-2"></i>Weekly Menu
-            </button>
-            <button 
-              onClick={() => setActiveTab('cart')}
-              className={`flex-1 py-3 text-center text-sm font-semibold border-b-2 transition-colors relative ${activeTab === 'cart' ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-gray-500'}`}
-            >
-              <i className="fa-solid fa-cart-shopping mr-2"></i>Grocery List
-              {aggregatedList.length > 0 && (
-                <span className="ml-2 bg-emerald-600 text-white text-xs px-2 py-0.5 rounded-full">
-                  {aggregatedList.length}
-                </span>
-              )}
-            </button>
-          </div>
+          {/* STEP 1: SETUP WIZARD */}
+          {step === 1 && (
+            <main className="p-5 flex-1 space-y-6">
+              <div className="border-b pb-3">
+                <h2 className="text-lg font-bold text-gray-900">Step 1: Set Your Grocery Plan</h2>
+                <p className="text-xs text-gray-500 mt-1">Customize your target budget, family size, and preferred Durham Region stores.</p>
+              </div>
 
-          {/* Body Content */}
-          <main className="p-4 flex-1">
-            {activeTab === 'menu' ? (
-              <div className="space-y-4">
-                <p className="text-xs text-gray-500 font-medium">Select meals to build your automatically organized grocery store list.</p>
+              {/* Weekly Budget */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-sm font-bold text-gray-800">Weekly Food Budget:</label>
+                  <span className="text-lg font-extrabold text-emerald-700">${weeklyBudget}</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="75" 
+                  max="400" 
+                  step="25" 
+                  value={weeklyBudget} 
+                  onChange={(e) => setWeeklyBudget(Number(e.target.value))}
+                  className="w-full accent-emerald-600 h-2 bg-gray-200 rounded-lg cursor-pointer"
+                />
+                <div className="flex justify-between text-[10px] font-bold text-gray-400">
+                  <span>$75</span>
+                  <span>$200</span>
+                  <span>$400+</span>
+                </div>
+              </div>
+
+              {/* Meals & Household Size */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                  <label className="text-xs font-bold text-gray-600 block mb-1">Meals / Week</label>
+                  <div className="flex items-center justify-between">
+                    <button onClick={() => setMealsPerWeek(Math.max(1, mealsPerWeek - 1))} className="w-8 h-8 rounded-lg bg-white border font-bold text-gray-700">-</button>
+                    <span className="font-extrabold text-gray-900">{mealsPerWeek}</span>
+                    <button onClick={() => setMealsPerWeek(mealsPerWeek + 1)} className="w-8 h-8 rounded-lg bg-white border font-bold text-gray-700">+</button>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                  <label className="text-xs font-bold text-gray-600 block mb-1">Servings / Meal</label>
+                  <div className="flex items-center justify-between">
+                    <button onClick={() => setServingsPerMeal(Math.max(1, servingsPerMeal - 1))} className="w-8 h-8 rounded-lg bg-white border font-bold text-gray-700">-</button>
+                    <span className="font-extrabold text-gray-900">{servingsPerMeal}</span>
+                    <button onClick={() => setServingsPerMeal(servingsPerMeal + 1)} className="w-8 h-8 rounded-lg bg-white border font-bold text-gray-700">+</button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Preferred Stores */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-gray-800 block">Shopping Store Routing:</label>
+                <div className="space-y-2">
+                  {STORES.map(store => (
+                    <div 
+                      key={store.id}
+                      onClick={() => setPrimaryStore(store.id)}
+                      className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center space-x-3 ${primaryStore === store.id ? 'border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-600/20' : 'border-gray-200 bg-white'}`}
+                    >
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm ${primaryStore === store.id ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                        <i className={`fa-solid ${store.icon}`}></i>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-gray-900">{store.name}</p>
+                        <p className="text-[10px] text-gray-500">{store.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setStep(2)}
+                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 text-sm"
+              >
+                <span>Continue to Select Meals</span>
+                <i className="fa-solid fa-arrow-right"></i>
+              </button>
+            </main>
+          )}
+
+          {/* STEP 2: MEAL SELECTION */}
+          {step === 2 && (
+            <main className="p-4 flex-1 space-y-4">
+              <div className="flex justify-between items-center border-b pb-3">
+                <div>
+                  <h2 className="text-base font-bold text-gray-900">Step 2: Pick {mealsPerWeek} Dinners</h2>
+                  <p className="text-xs text-gray-500">Curated for your ${weeklyBudget} target.</p>
+                </div>
+                <button onClick={() => setStep(1)} className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                  Edit Setup
+                </button>
+              </div>
+
+              <div className="space-y-3">
                 {RECIPES.map(recipe => {
                   const isSelected = selectedRecipes.includes(recipe.id);
-                  const servings = servingsMap[recipe.id] || recipe.servings;
-
                   return (
                     <div 
                       key={recipe.id}
-                      className={`border rounded-xl overflow-hidden shadow-sm transition-all ${isSelected ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/10' : 'border-gray-200 bg-white'}`}
+                      className={`border rounded-xl overflow-hidden transition-all ${isSelected ? 'border-emerald-600 ring-2 ring-emerald-600/20 bg-white shadow-md' : 'border-gray-200 bg-gray-50/50 opacity-90'}`}
                     >
-                      <img src={recipe.image} alt={recipe.title} className="w-full h-36 object-cover" />
-                      <div className="p-3">
-                        <div className="flex justify-between items-start">
+                      <div className="flex">
+                        <img src={recipe.image} alt={recipe.title} className="w-28 h-28 object-cover" />
+                        <div className="p-3 flex-1 flex flex-col justify-between">
                           <div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-                              {recipe.category}
-                            </span>
-                            <h3 className="font-bold text-gray-900 mt-1">{recipe.title}</h3>
+                            <div className="flex justify-between items-start">
+                              <span className="text-[9px] font-extrabold uppercase text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">
+                                {recipe.category}
+                              </span>
+                              <span className="text-xs font-extrabold text-gray-800">
+                                ~${recipe.estCostPerMeal.toFixed(2)}
+                              </span>
+                            </div>
+                            <h3 className="font-bold text-xs text-gray-900 mt-1">{recipe.title}</h3>
                           </div>
-                          <button
+
+                          <button 
                             onClick={() => toggleRecipe(recipe.id)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isSelected ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                            className={`w-full py-1.5 rounded-lg text-xs font-bold transition-all mt-2 ${isSelected ? 'bg-emerald-700 text-white' : 'bg-gray-200 text-gray-700'}`}
                           >
-                            {isSelected ? <><i className="fa-solid fa-check mr-1"></i>Selected</> : '+ Add Meal'}
+                            {isSelected ? '✓ Added to Menu' : '+ Add to Menu'}
                           </button>
                         </div>
-
-                        {/* Serving Adjuster */}
-                        {isSelected && (
-                          <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center bg-gray-50 p-2 rounded-lg">
-                            <span className="text-xs font-semibold text-gray-600">Servings:</span>
-                            <div className="flex items-center space-x-2">
-                              <button 
-                                onClick={() => updateServings(recipe.id, -1)}
-                                className="w-7 h-7 rounded-md bg-white border border-gray-300 text-gray-700 font-bold flex items-center justify-center text-sm shadow-sm active:bg-gray-100"
-                              >-</button>
-                              <span className="text-sm font-bold text-gray-800 min-w-[20px] text-center">{servings}</span>
-                              <button 
-                                onClick={() => updateServings(recipe.id, 1)}
-                                className="w-7 h-7 rounded-md bg-white border border-gray-300 text-gray-700 font-bold flex items-center justify-center text-sm shadow-sm active:bg-gray-100"
-                              >+</button>
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200 flex justify-between items-center">
-                  <div>
-                    <span className="text-xs font-bold text-emerald-800 block">Filtered for:</span>
-                    <span className="text-xs text-emerald-900 font-medium">
-                      {STORES.find(s => s.id === selectedStore)?.name}
-                    </span>
-                  </div>
-                  <i className="fa-solid fa-store text-emerald-600 text-lg"></i>
+
+              <button 
+                onClick={() => setStep(3)}
+                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 text-sm sticky bottom-4"
+              >
+                <span>Generate Store Grocery List ({aggregatedList.length} Items)</span>
+                <i className="fa-solid fa-arrow-right"></i>
+              </button>
+            </main>
+          )}
+
+          {/* STEP 3: ORGANIZED GROCERY LIST */}
+          {step === 3 && (
+            <main className="p-4 flex-1 space-y-4">
+              <div className="flex justify-between items-center border-b pb-3">
+                <div>
+                  <h2 className="text-base font-bold text-gray-900">Step 3: Interactive Grocery List</h2>
+                  <p className="text-xs text-gray-500">Sorted by store aisle for seamless shopping.</p>
                 </div>
+                <button onClick={() => setStep(2)} className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                  Change Meals
+                </button>
+              </div>
 
+              {/* Selected Store Badge */}
+              <div className="bg-emerald-900 text-white p-3 rounded-xl flex justify-between items-center text-xs">
+                <div>
+                  <span className="text-emerald-300 font-bold block">Target Route:</span>
+                  <span className="font-extrabold text-sm">{STORES.find(s => s.id === primaryStore)?.name}</span>
+                </div>
+                <i className="fa-solid fa-route text-xl text-emerald-400"></i>
+              </div>
+
+              {/* Grocery Items */}
+              <div className="space-y-2">
                 {aggregatedList.length === 0 ? (
-                  <div className="text-center py-12 text-gray-400">
-                    <i className="fa-solid fa-basket-shopping text-4xl mb-2"></i>
-                    <p className="text-sm font-medium">No items found for this store selection.</p>
-                  </div>
+                  <p className="text-center text-xs text-gray-400 py-8">No ingredients found for this store selection.</p>
                 ) : (
-                  <div className="space-y-2">
-                    {aggregatedList.map(item => {
-                      const isChecked = !!checkedItems[item.key];
-                      const itemStore = STORES.find(s => s.id === item.store);
-
-                      return (
-                        <div 
-                          key={item.key}
-                          onClick={() => toggleCheck(item.key)}
-                          className={`p-3 rounded-lg border flex items-center justify-between cursor-pointer transition-all ${isChecked ? 'bg-gray-50 border-gray-200 opacity-60' : 'bg-white border-gray-200 shadow-sm'}`}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <input 
-                              type="checkbox" 
-                              checked={isChecked} 
-                              onChange={() => {}}
-                              className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                            />
-                            <div>
-                              <p className={`text-sm font-semibold ${isChecked ? 'line-through text-gray-500' : 'text-gray-800'}`}>
-                                {item.name}
-                              </p>
-                              <div className="flex items-center space-x-2 mt-0.5">
-                                <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded font-medium">
-                                  {item.category}
-                                </span>
-                                {selectedStore === 'all' && (
-                                  <span className={`text-[10px] text-white px-1.5 py-0.5 rounded font-medium ${itemStore?.color || 'bg-gray-600'}`}>
-                                    {itemStore?.name.split(' ')[0]}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
+                  aggregatedList.map(item => {
+                    const isChecked = !!checkedItems[item.key];
+                    return (
+                      <div 
+                        key={item.key}
+                        onClick={() => toggleCheck(item.key)}
+                        className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${isChecked ? 'bg-gray-100 border-gray-200 opacity-50' : 'bg-white border-gray-200 shadow-sm'}`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <input 
+                            type="checkbox" 
+                            checked={isChecked} 
+                            onChange={() => {}} 
+                            className="w-4 h-4 text-emerald-600 rounded"
+                          />
+                          <div>
+                            <p className={`text-xs font-bold ${isChecked ? 'line-through text-gray-400' : 'text-gray-900'}`}>
+                              {item.name}
+                            </p>
+                            <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded font-medium">
+                              {item.category} • Preferred: {item.store.toUpperCase()}
+                            </span>
                           </div>
-                          <span className="text-sm font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded">
-                            {item.qty} {item.unit}
-                          </span>
                         </div>
-                      );
-                    })}
-                  </div>
+                        <span className="text-xs font-black text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">
+                          ${item.price.toFixed(2)}
+                        </span>
+                      </div>
+                    );
+                  })
                 )}
               </div>
-            )}
-          </main>
+
+              {/* Action Buttons */}
+              <div className="pt-2 space-y-2">
+                <button 
+                  onClick={() => alert('Order simulation initialized! Routing items to PC Express (Vos YIG), Walmart North Oshawa, and Costco/Instacart.')}
+                  className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow-md transition-all text-xs flex items-center justify-center space-x-2"
+                >
+                  <i className="fa-solid fa-cart-arrow-down"></i>
+                  <span>Export to Online Store Carts</span>
+                </button>
+                
+                <button 
+                  onClick={() => setStep(1)}
+                  className="w-full bg-gray-100 text-gray-700 font-bold py-2.5 rounded-xl text-xs hover:bg-gray-200"
+                >
+                  Start New Weekly Plan
+                </button>
+              </div>
+            </main>
+          )}
         </div>
       );
     }
