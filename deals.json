@@ -1,0 +1,27 @@
+{
+  "postalCode": "L9H / L1H",
+  "lastUpdated": "2026-11-06",
+  "activeDeals": [
+    {
+      "item": "Atlantic Salmon",
+      "store": "vos",
+      "storeName": "Vos' YIG (Port Perry)",
+      "salePrice": 12.99,
+      "badge": "25% Off Flyer Special"
+    },
+    {
+      "item": "Chicken Breasts",
+      "store": "costco",
+      "storeName": "Costco Wholesale (North Oshawa)",
+      "salePrice": 10.99,
+      "badge": "Bulk Savings Deal"
+    },
+    {
+      "item": "Bell Peppers (3 Pack)",
+      "store": "costco",
+      "storeName": "Costco Wholesale (North Oshawa)",
+      "salePrice": 3.99,
+      "badge": "Member Value Deal"
+    }
+  ]
+}
