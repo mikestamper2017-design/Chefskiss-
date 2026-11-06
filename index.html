@@ -17,13 +17,86 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useMemo } = React;
+    const { useState, useMemo } = React;
 
     const STORES = [
       { id: 'smart_split', name: 'Smart Split (Best Value Across All 3)', icon: 'fa-layer-group', desc: 'Routes bulk to Costco, produce to Vos, staples to Walmart' },
       { id: 'vos', name: "Vos' YIG (Port Perry)", icon: 'fa-basket-shopping', desc: 'Local produce, fresh meat, specialty deli & bakery' },
       { id: 'walmart', name: 'Walmart Supercentre (North Oshawa)', icon: 'fa-cart-shopping', desc: 'Pantry staples, frozen goods, household items' },
       { id: 'costco', name: 'Costco Wholesale (North Oshawa)', icon: 'fa-box', desc: 'Bulk proteins, produce packs, dairy & snacks' }
+    ];
+
+    // Embedded Recipe Bank (No external files needed - zero 404 risk)
+    const RECIPE_BANK = [
+      {
+        id: 1,
+        title: "Pan-Seared Salmon with Asparagus & Quinoa",
+        category: "Seafood Special",
+        estCostPerMeal: 21.50,
+        servings: 4,
+        saleBadge: "Atlantic Salmon Deal at Vos' YIG",
+        image: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=600&q=80",
+        ingredients: [
+          { name: "Atlantic Salmon Fillets", qty: 4, unit: "pieces", price: 12.99, category: "Meat & Seafood", store: "vos", isPantry: false },
+          { name: "Fresh Asparagus", qty: 1, unit: "bunch", price: 3.49, category: "Produce", store: "vos", isPantry: false },
+          { name: "Quinoa", qty: 1, unit: "bag", price: 2.50, category: "Pantry", store: "costco", isPantry: false },
+          { name: "Olive Oil", qty: 2, unit: "tbsp", price: 0.40, category: "Pantry", store: "costco", isPantry: true }
+        ]
+      },
+      {
+        id: 2,
+        title: "Sheet Pan Chicken Fajitas",
+        category: "Family Favorites",
+        estCostPerMeal: 17.50,
+        servings: 4,
+        saleBadge: "Bulk Peppers & Chicken at Costco",
+        image: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80",
+        ingredients: [
+          { name: "Chicken Breasts (Bulk)", qty: 1, unit: "kg", price: 10.99, category: "Meat & Seafood", store: "costco", isPantry: false },
+          { name: "Bell Peppers (3 Pack)", qty: 1, unit: "pack", price: 3.99, category: "Produce", store: "costco", isPantry: false },
+          { name: "Flour Tortillas", qty: 1, unit: "pack", price: 2.50, category: "Bakery", store: "walmart", isPantry: false }
+        ]
+      },
+      {
+        id: 3,
+        title: "Garlic Butter Steak Bites & Broccoli",
+        category: "High Protein",
+        estCostPerMeal: 19.50,
+        servings: 4,
+        saleBadge: "Striploin Steak Deal at Costco",
+        image: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80",
+        ingredients: [
+          { name: "Beef Striploin Cuts", qty: 2, unit: "packs", price: 13.99, category: "Meat & Seafood", store: "costco", isPantry: false },
+          { name: "Fresh Broccoli Crowns", qty: 2, unit: "heads", price: 3.50, category: "Produce", store: "vos", isPantry: false }
+        ]
+      },
+      {
+        id: 4,
+        title: "Lemon Herb Roasted Chicken Thighs",
+        category: "Quick & Easy",
+        estCostPerMeal: 14.00,
+        servings: 4,
+        saleBadge: "Chicken Thigh Value Pack at Vos' YIG",
+        image: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=600&q=80",
+        ingredients: [
+          { name: "Bone-In Chicken Thighs", qty: 1, unit: "tray", price: 9.50, category: "Meat & Seafood", store: "vos", isPantry: false },
+          { name: "Baby Potatoes", qty: 1, unit: "bag", price: 3.50, category: "Produce", store: "costco", isPantry: false }
+        ]
+      },
+      {
+        id: 5,
+        title: "Shrimp & Pesto Linguine Pasta",
+        category: "Quick & Easy",
+        estCostPerMeal: 18.00,
+        servings: 4,
+        saleBadge: "Jumbo Shrimp Bulk Special at Costco",
+        image: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=600&q=80",
+        ingredients: [
+          { name: "Frozen Jumbo Shrimp", qty: 1, unit: "bag", price: 11.99, category: "Meat & Seafood", store: "costco", isPantry: false },
+          { name: "Basil Pesto Sauce", qty: 1, unit: "jar", price: 4.50, category: "Pantry", store: "vos", isPantry: false },
+          { name: "Linguine Pasta", qty: 1, unit: "box", price: 1.99, category: "Pantry", store: "walmart", isPantry: false }
+        ]
+      }
     ];
 
     function App() {
@@ -33,34 +106,15 @@
       const [servingsPerMeal, setServingsPerMeal] = useState(4);
       const [primaryStore, setPrimaryStore] = useState('smart_split');
 
-      const [recipeBank, setRecipeBank] = useState([]);
-      const [displayedRecipes, setDisplayedRecipes] = useState([]);
-      const [selectedRecipes, setSelectedRecipes] = useState([]);
-      const [isLoading, setIsLoading] = useState(true);
+      const [displayedRecipes, setDisplayedRecipes] = useState(RECIPE_BANK.slice(0, 3));
+      const [selectedRecipes, setSelectedRecipes] = useState([1, 2]);
 
       const [ownedPantryItems, setOwnedPantryItems] = useState({ 'Olive Oil': true });
       const [checkedCartItems, setCheckedCartItems] = useState({});
 
-      // Fetch Recipe Bank from recipes.json
-      useEffect(() => {
-        fetch('./recipes.json')
-          .then(res => res.json())
-          .then(data => {
-            setRecipeBank(data);
-            setDisplayedRecipes(data.slice(0, 3));
-            setSelectedRecipes([data[0]?.id, data[1]?.id].filter(Boolean));
-            setIsLoading(false);
-          })
-          .catch(err => {
-            console.error('Error loading recipe bank:', err);
-            setIsLoading(false);
-          });
-      }, []);
-
-      // Shuffle and pick new recipes from the bank
+      // Shuffle recipes instantly from internal bank
       const shuffleRecipes = () => {
-        if (recipeBank.length === 0) return;
-        const shuffled = [...recipeBank].sort(() => 0.5 - Math.random());
+        const shuffled = [...RECIPE_BANK].sort(() => 0.5 - Math.random());
         const newBatch = shuffled.slice(0, 3);
         setDisplayedRecipes(newBatch);
         setSelectedRecipes(newBatch.map(r => r.id));
@@ -72,15 +126,15 @@
 
       const totalEstimatedCost = useMemo(() => {
         return selectedRecipes.reduce((sum, id) => {
-          const r = recipeBank.find(item => item.id === id);
+          const r = RECIPE_BANK.find(item => item.id === id);
           return sum + (r ? r.estCostPerMeal : 0);
         }, 0);
-      }, [selectedRecipes, recipeBank]);
+      }, [selectedRecipes]);
 
       const aggregatedList = useMemo(() => {
         const items = {};
         selectedRecipes.forEach(rId => {
-          const recipe = recipeBank.find(r => r.id === rId);
+          const recipe = RECIPE_BANK.find(item => item.id === rId);
           if (!recipe) return;
           recipe.ingredients.forEach(ing => {
             if (primaryStore !== 'smart_split' && ing.store !== primaryStore) return;
@@ -95,7 +149,7 @@
           });
         });
         return Object.values(items);
-      }, [selectedRecipes, recipeBank, primaryStore, ownedPantryItems]);
+      }, [selectedRecipes, primaryStore, ownedPantryItems]);
 
       return (
         <div className="max-w-md mx-auto bg-white min-h-screen shadow-2xl flex flex-col">
@@ -144,7 +198,7 @@
                   </div>
                 ))}
               </div>
-              <button onClick={() => setStep(2)} className="w-full bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg">Continue to Recipe Bank</button>
+              <button onClick={() => setStep(2)} className="w-full bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg">Continue to Meal Selection</button>
             </main>
           )}
 
@@ -153,7 +207,7 @@
               <div className="flex justify-between items-center border-b pb-3">
                 <div>
                   <h2 className="text-base font-bold text-gray-900">Step 2: Meal Selection</h2>
-                  <p className="text-xs text-gray-500">{recipeBank.length} recipes in your local database</p>
+                  <p className="text-xs text-gray-500">Built-in Durham Region Recipe Bank</p>
                 </div>
                 <button onClick={shuffleRecipes} className="text-xs font-bold bg-amber-50 text-amber-700 border border-amber-300 px-3 py-1.5 rounded-lg flex items-center space-x-1 shadow-sm">
                   <i className="fa-solid fa-shuffle"></i>
@@ -161,28 +215,24 @@
                 </button>
               </div>
 
-              {isLoading ? (
-                <p className="text-center text-xs text-gray-500 py-8">Loading recipe database...</p>
-              ) : (
-                <div className="space-y-3">
-                  {displayedRecipes.map(recipe => {
-                    const isSelected = selectedRecipes.includes(recipe.id);
-                    return (
-                      <div key={recipe.id} className={`border rounded-xl p-3 flex space-x-3 ${isSelected ? 'border-emerald-600 bg-emerald-50/20 shadow' : 'border-gray-200'}`}>
-                        <img src={recipe.image} className="w-20 h-20 object-cover rounded-lg" />
-                        <div className="flex-1">
-                          <span className="text-[9px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">{recipe.category}</span>
-                          <h3 className="font-bold text-xs mt-1">{recipe.title}</h3>
-                          <p className="text-[10px] text-amber-700 font-semibold mt-1"><i className="fa-solid fa-tag mr-1"></i>{recipe.saleBadge}</p>
-                          <button onClick={() => toggleRecipe(recipe.id)} className={`mt-2 w-full py-1 text-xs font-bold rounded-lg ${isSelected ? 'bg-emerald-700 text-white' : 'bg-gray-200 text-gray-700'}`}>
-                            {isSelected ? '✓ Selected' : '+ Select Meal'}
-                          </button>
-                        </div>
+              <div className="space-y-3">
+                {displayedRecipes.map(recipe => {
+                  const isSelected = selectedRecipes.includes(recipe.id);
+                  return (
+                    <div key={recipe.id} className={`border rounded-xl p-3 flex space-x-3 ${isSelected ? 'border-emerald-600 bg-emerald-50/20 shadow' : 'border-gray-200'}`}>
+                      <img src={recipe.image} className="w-20 h-20 object-cover rounded-lg" />
+                      <div className="flex-1">
+                        <span className="text-[9px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">{recipe.category}</span>
+                        <h3 className="font-bold text-xs mt-1">{recipe.title}</h3>
+                        <p className="text-[10px] text-amber-700 font-semibold mt-1"><i className="fa-solid fa-tag mr-1"></i>{recipe.saleBadge}</p>
+                        <button onClick={() => toggleRecipe(recipe.id)} className={`mt-2 w-full py-1 text-xs font-bold rounded-lg ${isSelected ? 'bg-emerald-700 text-white' : 'bg-gray-200 text-gray-700'}`}>
+                          {isSelected ? '✓ Selected' : '+ Select Meal'}
+                        </button>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                    </div>
+                  );
+                })}
+              </div>
 
               <button onClick={() => setStep(3)} className="w-full bg-emerald-700 text-white font-bold py-3.5 rounded-xl">Continue to Pantry Check</button>
             </main>
