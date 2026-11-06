@@ -26,6 +26,58 @@
       { id: 'costco', name: 'Costco Wholesale (North Oshawa)', icon: 'fa-box', desc: 'Bulk proteins, produce packs, dairy & snacks' }
     ];
 
+    // Bank of randomized AI recipe ideas to keep suggestions fresh
+    const AI_RECIPE_POOL = [
+      {
+        title: "Garlic Butter Steak Bites & Roasted Broccoli",
+        category: "AI Generated Idea",
+        estCostPerMeal: 19.50,
+        saleBadge: "Striploin Steak Flyer Deal at Costco",
+        image: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80",
+        ingredients: [
+          { name: "Beef Striploin Cuts", qty: 2, unit: "packs", price: 13.99, category: "Meat & Seafood", store: "costco", isPantry: false },
+          { name: "Fresh Broccoli Crowns", qty: 2, unit: "heads", price: 3.50, category: "Produce", store: "vos", isPantry: false },
+          { name: "Minced Garlic", qty: 1, unit: "jar", price: 2.00, category: "Pantry", store: "walmart", isPantry: false }
+        ]
+      },
+      {
+        title: "Lemon Herb Roasted Chicken Thighs",
+        category: "AI Generated Idea",
+        estCostPerMeal: 14.00,
+        saleBadge: "Chicken Thigh Value Pack at Vos' YIG",
+        image: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=600&q=80",
+        ingredients: [
+          { name: "Bone-In Chicken Thighs", qty: 1, unit: "tray", price: 9.50, category: "Meat & Seafood", store: "vos", isPantry: false },
+          { name: "Baby Potatoes", qty: 1, unit: "bag", price: 3.50, category: "Produce", store: "costco", isPantry: false },
+          { name: "Fresh Lemons", qty: 2, unit: "items", price: 1.50, category: "Produce", store: "vos", isPantry: false }
+        ]
+      },
+      {
+        title: "Crispy Tofu & Stir-Fry Veggie Noodles",
+        category: "AI Generated Idea",
+        estCostPerMeal: 12.50,
+        saleBadge: "Organic Tofu & Noodles Deal at Walmart",
+        image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+        ingredients: [
+          { name: "Extra Firm Tofu", qty: 2, unit: "blocks", price: 5.00, category: "Dairy & Alt", store: "walmart", isPantry: false },
+          { name: "Stir Fry Vegetable Mix", qty: 1, unit: "bag", price: 3.99, category: "Produce", store: "costco", isPantry: false },
+          { name: "Ramen Noodles", qty: 1, unit: "pack", price: 2.50, category: "Pantry", store: "walmart", isPantry: false }
+        ]
+      },
+      {
+        title: "Shrimp & Pesto Linguine Pasta",
+        category: "AI Generated Idea",
+        estCostPerMeal: 18.00,
+        saleBadge: "Frozen White Shrimp Bulk Special at Costco",
+        image: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=600&q=80",
+        ingredients: [
+          { name: "Frozen Jumbo Shrimp", qty: 1, unit: "bag", price: 11.99, category: "Meat & Seafood", store: "costco", isPantry: false },
+          { name: "Basil Pesto Sauce", qty: 1, unit: "jar", price: 4.50, category: "Pantry", store: "vos", isPantry: false },
+          { name: "Linguine Pasta", qty: 1, unit: "box", price: 1.99, category: "Pantry", store: "walmart", isPantry: false }
+        ]
+      }
+    ];
+
     function App() {
       const [step, setStep] = useState(1);
       const [weeklyBudget, setWeeklyBudget] = useState(175);
@@ -33,11 +85,9 @@
       const [servingsPerMeal, setServingsPerMeal] = useState(4);
       const [primaryStore, setPrimaryStore] = useState('smart_split');
 
-      // Live Deals from GitHub JSON
       const [flyerDeals, setFlyerDeals] = useState([]);
       const [loadingDeals, setLoadingDeals] = useState(true);
 
-      // Fetch deals.json from your repository automatically
       useEffect(() => {
         fetch('./deals.json')
           .then(res => res.json())
@@ -45,10 +95,7 @@
             setFlyerDeals(data.activeDeals || []);
             setLoadingDeals(false);
           })
-          .catch(err => {
-            console.log('Using fallback deals', err);
-            setLoadingDeals(false);
-          });
+          .catch(err => setLoadingDeals(false));
       }, []);
 
       const [recipes, setRecipes] = useState([
@@ -86,6 +133,23 @@
       const [selectedRecipes, setSelectedRecipes] = useState([1, 2]);
       const [ownedPantryItems, setOwnedPantryItems] = useState({ 'Olive Oil': true });
       const [checkedCartItems, setCheckedCartItems] = useState({});
+      const [aiPoolIndex, setAiPoolIndex] = useState(0);
+
+      // Dynamic AI Recipe Generator (Pulls unique ideas sequentially from pool)
+      const handleAddAiIdea = () => {
+        const template = AI_RECIPE_POOL[aiPoolIndex % AI_RECIPE_POOL.length];
+        setAiPoolIndex(prev => prev + 1);
+
+        const newId = recipes.length + 1;
+        const newRecipe = {
+          ...template,
+          id: newId,
+          servings: servingsPerMeal
+        };
+
+        setRecipes(prev => [newRecipe, ...prev]);
+        setSelectedRecipes(prev => [...prev, newId]);
+      };
 
       const toggleRecipe = (id) => {
         setSelectedRecipes(prev => prev.includes(id) ? prev.filter(rId => rId !== id) : [...prev, id]);
@@ -123,7 +187,7 @@
           <header className="bg-emerald-800 text-white p-4 sticky top-0 z-20 shadow-md">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-xl font-black tracking-wide"><i className="fa-solid fa-utensils text-emerald-400 mr-2"></i>FreshPlan Live</h1>
+                <h1 className="text-xl font-black tracking-wide"><i className="fa-solid fa-utensils text-emerald-400 mr-2"></i>FreshPlan AI</h1>
                 <p className="text-[11px] text-emerald-200">Port Perry (L9H) & North Oshawa (L1H)</p>
               </div>
               <span className="text-xs bg-emerald-900 border border-emerald-600 px-2.5 py-1 rounded-full font-bold">
@@ -171,13 +235,17 @@
 
           {step === 2 && (
             <main className="p-4 flex-1 space-y-4">
-              <div className="border-b pb-3">
-                <h2 className="text-base font-bold text-gray-900">Step 2: Menus & Flyer Specials</h2>
-                <p className="text-xs text-emerald-700 font-semibold mt-1">
-                  <i className="fa-solid fa-bolt mr-1"></i>
-                  {loadingDeals ? 'Syncing local flyers for L9H / L1H...' : `${flyerDeals.length} active flyer specials loaded from GitHub`}
-                </p>
+              <div className="flex justify-between items-center border-b pb-3">
+                <div>
+                  <h2 className="text-base font-bold text-gray-900">Step 2: Menus & Flyer Specials</h2>
+                  <p className="text-xs text-emerald-700 font-semibold mt-0.5"><i className="fa-solid fa-bolt mr-1"></i>{loadingDeals ? 'Syncing local flyers...' : 'Flyers synced (L9H/L1H)'}</p>
+                </div>
+                <button onClick={handleAddAiIdea} className="text-xs font-bold bg-amber-50 text-amber-700 border border-amber-300 px-3 py-1.5 rounded-lg flex items-center space-x-1 shadow-sm">
+                  <i className="fa-solid fa-wand-magic-sparkles"></i>
+                  <span>+ AI Idea</span>
+                </button>
               </div>
+
               <div className="space-y-3">
                 {recipes.map(recipe => {
                   const isSelected = selectedRecipes.includes(recipe.id);
