@@ -11,15 +11,13 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-900 min-h-screen">
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useMemo } = React;
+    const { useState, useEffect, useMemo } = React;
 
     const STORES = [
       { id: 'smart_split', name: 'Smart Split (Best Value Across All 3)', icon: 'fa-layer-group', desc: 'Routes bulk to Costco, produce to Vos, staples to Walmart' },
@@ -28,140 +26,86 @@
       { id: 'costco', name: 'Costco Wholesale (North Oshawa)', icon: 'fa-box', desc: 'Bulk proteins, produce packs, dairy & snacks' }
     ];
 
-    const INITIAL_RECIPES = [
-      {
-        id: 1,
-        title: "Grilled Salmon with Asparagus & Quinoa",
-        category: "Flyer Deal of the Week",
-        estCostPerMeal: 21.50,
-        servings: 4,
-        isOnSale: true,
-        saleBadge: "Salmon 20% Off at Vos'",
-        image: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=600&q=80",
-        ingredients: [
-          { name: "Atlantic Salmon Fillets", qty: 4, unit: "pieces", price: 14.99, category: "Meat & Seafood", store: "vos", isPantry: false },
-          { name: "Fresh Asparagus", qty: 1, unit: "bunch", price: 3.49, category: "Produce", store: "vos", isPantry: false },
-          { name: "Quinoa", qty: 1, unit: "bag", price: 2.50, category: "Pantry", store: "costco", isPantry: false },
-          { name: "Olive Oil", qty: 2, unit: "tbsp", price: 0.40, category: "Pantry", store: "costco", isPantry: true },
-          { name: "Garlic Powder", qty: 1, unit: "tsp", price: 0.15, category: "Pantry", store: "walmart", isPantry: true }
-        ]
-      },
-      {
-        id: 2,
-        title: "Sheet Pan Chicken Fajitas",
-        category: "Family Favorites",
-        estCostPerMeal: 17.50,
-        servings: 4,
-        isOnSale: true,
-        saleBadge: "Bell Peppers Bulk Deal at Costco",
-        image: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80",
-        ingredients: [
-          { name: "Chicken Breasts (Bulk)", qty: 1, unit: "kg", price: 10.99, category: "Meat & Seafood", store: "costco", isPantry: false },
-          { name: "Bell Peppers (3 Pack)", qty: 1, unit: "pack", price: 3.99, category: "Produce", store: "costco", isPantry: false },
-          { name: "Flour Tortillas", qty: 1, unit: "pack", price: 2.50, category: "Bakery", store: "walmart", isPantry: false },
-          { name: "Fajita Seasoning", qty: 1, unit: "packet", price: 1.25, category: "Pantry", store: "walmart", isPantry: true },
-          { name: "Cooking Oil", qty: 2, unit: "tbsp", price: 0.30, category: "Pantry", store: "walmart", isPantry: true }
-        ]
-      },
-      {
-        id: 3,
-        title: "Greek Avocado & Feta Salad Bowls",
-        category: "Low Carb",
-        estCostPerMeal: 13.50,
-        servings: 2,
-        isOnSale: false,
-        image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=600&q=80",
-        ingredients: [
-          { name: "Avocados (5 pack)", qty: 1, unit: "bag", price: 5.49, category: "Produce", store: "costco", isPantry: false },
-          { name: "English Cucumber", qty: 1, unit: "item", price: 1.49, category: "Produce", store: "vos", isPantry: false },
-          { name: "Cherry Tomatoes", qty: 1, unit: "pint", price: 2.99, category: "Produce", store: "vos", isPantry: false },
-          { name: "Feta Cheese", qty: 1, unit: "block", price: 4.50, category: "Dairy", store: "vos", isPantry: false },
-          { name: "Dried Oregano & Salt", qty: 1, unit: "pinch", price: 0.10, category: "Pantry", store: "walmart", isPantry: true }
-        ]
-      }
-    ];
-
     function App() {
-      // Step Tracking: 1 = Setup, 2 = Menu Selection, 3 = Pantry Check, 4 = Final List
       const [step, setStep] = useState(1);
-
-      // Onboarding State
       const [weeklyBudget, setWeeklyBudget] = useState(175);
       const [mealsPerWeek, setMealsPerWeek] = useState(4);
       const [servingsPerMeal, setServingsPerMeal] = useState(4);
       const [primaryStore, setPrimaryStore] = useState('smart_split');
 
-      // Recipes & Dynamic AI Generation
-      const [recipes, setRecipes] = useState(INITIAL_RECIPES);
+      // Live Deals from GitHub JSON
+      const [flyerDeals, setFlyerDeals] = useState([]);
+      const [loadingDeals, setLoadingDeals] = useState(true);
+
+      // Fetch deals.json from your repository automatically
+      useEffect(() => {
+        fetch('./deals.json')
+          .then(res => res.json())
+          .then(data => {
+            setFlyerDeals(data.activeDeals || []);
+            setLoadingDeals(false);
+          })
+          .catch(err => {
+            console.log('Using fallback deals', err);
+            setLoadingDeals(false);
+          });
+      }, []);
+
+      const [recipes, setRecipes] = useState([
+        {
+          id: 1,
+          title: "Grilled Salmon with Asparagus & Quinoa",
+          category: "Flyer Deal Match",
+          estCostPerMeal: 21.50,
+          servings: 4,
+          saleBadge: "Atlantic Salmon on sale at Vos' YIG",
+          image: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=600&q=80",
+          ingredients: [
+            { name: "Atlantic Salmon Fillets", qty: 4, unit: "pieces", price: 12.99, category: "Meat & Seafood", store: "vos", isPantry: false },
+            { name: "Fresh Asparagus", qty: 1, unit: "bunch", price: 3.49, category: "Produce", store: "vos", isPantry: false },
+            { name: "Quinoa", qty: 1, unit: "bag", price: 2.50, category: "Pantry", store: "costco", isPantry: false },
+            { name: "Olive Oil", qty: 2, unit: "tbsp", price: 0.40, category: "Pantry", store: "costco", isPantry: true }
+          ]
+        },
+        {
+          id: 2,
+          title: "Sheet Pan Chicken Fajitas",
+          category: "Family Favorites",
+          estCostPerMeal: 17.50,
+          servings: 4,
+          saleBadge: "Chicken Breasts Bulk Special at Costco",
+          image: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80",
+          ingredients: [
+            { name: "Chicken Breasts (Bulk)", qty: 1, unit: "kg", price: 10.99, category: "Meat & Seafood", store: "costco", isPantry: false },
+            { name: "Bell Peppers (3 Pack)", qty: 1, unit: "pack", price: 3.99, category: "Produce", store: "costco", isPantry: false },
+            { name: "Flour Tortillas", qty: 1, unit: "pack", price: 2.50, category: "Bakery", store: "walmart", isPantry: false }
+          ]
+        }
+      ]);
+
       const [selectedRecipes, setSelectedRecipes] = useState([1, 2]);
-      const [isGenerating, setIsGenerating] = useState(false);
-
-      // Pantry Management (User unchecks items they ALREADY HAVE)
-      const [ownedPantryItems, setOwnedPantryItems] = useState({
-        'Olive Oil': true,
-        'Garlic Powder': true,
-        'Cooking Oil': true,
-        'Dried Oregano & Salt': true
-      });
-
+      const [ownedPantryItems, setOwnedPantryItems] = useState({ 'Olive Oil': true });
       const [checkedCartItems, setCheckedCartItems] = useState({});
 
       const toggleRecipe = (id) => {
-        setSelectedRecipes(prev => 
-          prev.includes(id) ? prev.filter(rId => rId !== id) : [...prev, id]
-        );
+        setSelectedRecipes(prev => prev.includes(id) ? prev.filter(rId => rId !== id) : [...prev, id]);
       };
 
-      // AI Recipe Generation Simulation
-      const generateNewAIRecipe = () => {
-        setIsGenerating(true);
-        setTimeout(() => {
-          const newId = recipes.length + 1;
-          const aiRecipe = {
-            id: newId,
-            title: `AI Special: Herb Garlic Pork Chops & Roasted Potatoes`,
-            category: "Generated for Your Budget",
-            estCostPerMeal: 16.00,
-            servings: servingsPerMeal,
-            isOnSale: true,
-            saleBadge: "Pork Center Cut Sale at Vos' YIG",
-            image: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80",
-            ingredients: [
-              { name: "Pork Center Cut Chops", qty: 1, unit: "pack", price: 9.50, category: "Meat & Seafood", store: "vos", isPantry: false },
-              { name: "Yukon Gold Potatoes", qty: 1, unit: "bag", price: 3.99, category: "Produce", store: "costco", isPantry: false },
-              { name: "Fresh Rosemary", qty: 1, unit: "pack", price: 1.99, category: "Produce", store: "vos", isPantry: false },
-              { name: "Garlic Cloves", qty: 1, unit: "head", price: 0.60, category: "Produce", store: "walmart", isPantry: false },
-              { name: "Black Pepper & Salt", qty: 1, unit: "pinch", price: 0.10, category: "Pantry", store: "walmart", isPantry: true }
-            ]
-          };
-          setRecipes(prev => [aiRecipe, ...prev]);
-          setSelectedRecipes(prev => [...prev, newId]);
-          setIsGenerating(false);
-        }, 1200);
-      };
-
-      // Cost Calculation
       const totalEstimatedCost = useMemo(() => {
         return selectedRecipes.reduce((sum, id) => {
-          const recipe = recipes.find(r => r.id === id);
-          return sum + (recipe ? recipe.estCostPerMeal : 0);
+          const r = recipes.find(item => item.id === id);
+          return sum + (r ? r.estCostPerMeal : 0);
         }, 0);
       }, [selectedRecipes, recipes]);
 
-      // Filtered Grocery List (Excludes owned pantry items)
       const aggregatedList = useMemo(() => {
         const items = {};
         selectedRecipes.forEach(rId => {
           const recipe = recipes.find(r => r.id === rId);
           if (!recipe) return;
-
           recipe.ingredients.forEach(ing => {
-            // Store Filter
             if (primaryStore !== 'smart_split' && ing.store !== primaryStore) return;
-
-            // Pantry Filter: skip if user confirmed they already own this pantry item
             if (ing.isPantry && ownedPantryItems[ing.name]) return;
-
             const key = `${ing.name}-${ing.unit}`;
             if (items[key]) {
               items[key].qty += ing.qty;
@@ -174,28 +118,18 @@
         return Object.values(items);
       }, [selectedRecipes, recipes, primaryStore, ownedPantryItems]);
 
-      const togglePantryItem = (name) => {
-        setOwnedPantryItems(prev => ({ ...prev, [name]: !prev[name] }));
-      };
-
-      const toggleCartCheck = (key) => {
-        setCheckedCartItems(prev => ({ ...prev, [key]: !prev[key] }));
-      };
-
       return (
         <div className="max-w-md mx-auto bg-white min-h-screen shadow-2xl flex flex-col">
-          {/* Header */}
           <header className="bg-emerald-800 text-white p-4 sticky top-0 z-20 shadow-md">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-xl font-black tracking-wide"><i className="fa-solid fa-utensils text-emerald-400 mr-2"></i>FreshPlan AI</h1>
+                <h1 className="text-xl font-black tracking-wide"><i className="fa-solid fa-utensils text-emerald-400 mr-2"></i>FreshPlan Live</h1>
                 <p className="text-[11px] text-emerald-200">Port Perry (L9H) & North Oshawa (L1H)</p>
               </div>
-              <span className="text-xs bg-emerald-900/80 border border-emerald-600 px-2.5 py-1 rounded-full font-bold">
+              <span className="text-xs bg-emerald-900 border border-emerald-600 px-2.5 py-1 rounded-full font-bold">
                 Step {step} of 4
               </span>
             </div>
-
             {step > 1 && (
               <div className="mt-3 pt-3 border-t border-emerald-700">
                 <div className="flex justify-between text-xs font-semibold mb-1">
@@ -203,285 +137,100 @@
                   <span>Budget: ${weeklyBudget}</span>
                 </div>
                 <div className="w-full bg-emerald-950 rounded-full h-2.5 overflow-hidden">
-                  <div 
-                    className={`h-2.5 transition-all duration-500 ${totalEstimatedCost > weeklyBudget ? 'bg-amber-400' : 'bg-emerald-400'}`}
-                    style={{ width: `${Math.min(100, (totalEstimatedCost / weeklyBudget) * 100)}%` }}
-                  ></div>
+                  <div className="bg-emerald-400 h-2.5" style={{ width: `${Math.min(100, (totalEstimatedCost / weeklyBudget) * 100)}%` }}></div>
                 </div>
               </div>
             )}
           </header>
 
-          {/* STEP 1: SETUP WIZARD */}
           {step === 1 && (
             <main className="p-5 flex-1 space-y-6">
-              <div className="border-b pb-3">
-                <h2 className="text-lg font-bold text-gray-900">Step 1: Onboarding & Target Stores</h2>
-                <p className="text-xs text-gray-500 mt-1">Configure your target budget, family size, and Durham Region shopping preferences.</p>
-              </div>
-
+              <h2 className="text-lg font-bold text-gray-900 border-b pb-2">Step 1: Setup & Local Stores</h2>
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-sm font-bold text-gray-800">Weekly Target Budget:</label>
-                  <span className="text-lg font-extrabold text-emerald-700">${weeklyBudget}</span>
+                <div className="flex justify-between items-center text-sm font-bold">
+                  <span>Weekly Budget:</span>
+                  <span className="text-emerald-700 text-lg">${weeklyBudget}</span>
                 </div>
-                <input 
-                  type="range" min="75" max="400" step="25" 
-                  value={weeklyBudget} 
-                  onChange={(e) => setWeeklyBudget(Number(e.target.value))}
-                  className="w-full accent-emerald-600 h-2 bg-gray-200 rounded-lg cursor-pointer"
-                />
+                <input type="range" min="75" max="400" step="25" value={weeklyBudget} onChange={(e) => setWeeklyBudget(Number(e.target.value))} className="w-full accent-emerald-600" />
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
-                  <label className="text-xs font-bold text-gray-600 block mb-1">Meals / Week</label>
-                  <div className="flex items-center justify-between">
-                    <button onClick={() => setMealsPerWeek(Math.max(1, mealsPerWeek - 1))} className="w-8 h-8 rounded-lg bg-white border font-bold">-</button>
-                    <span className="font-extrabold text-gray-900">{mealsPerWeek}</span>
-                    <button onClick={() => setMealsPerWeek(mealsPerWeek + 1)} className="w-8 h-8 rounded-lg bg-white border font-bold">+</button>
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
-                  <label className="text-xs font-bold text-gray-600 block mb-1">Servings / Meal</label>
-                  <div className="flex items-center justify-between">
-                    <button onClick={() => setServingsPerMeal(Math.max(1, servingsPerMeal - 1))} className="w-8 h-8 rounded-lg bg-white border font-bold">-</button>
-                    <span className="font-extrabold text-gray-900">{servingsPerMeal}</span>
-                    <button onClick={() => setServingsPerMeal(servingsPerMeal + 1)} className="w-8 h-8 rounded-lg bg-white border font-bold">+</button>
-                  </div>
-                </div>
-              </div>
-
               <div className="space-y-2">
                 <label className="text-sm font-bold text-gray-800 block">Select Store Routing:</label>
-                <div className="space-y-2">
-                  {STORES.map(store => (
-                    <div 
-                      key={store.id}
-                      onClick={() => setPrimaryStore(store.id)}
-                      className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center space-x-3 ${primaryStore === store.id ? 'border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-600/20' : 'border-gray-200 bg-white'}`}
-                    >
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm ${primaryStore === store.id ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
-                        <i className={`fa-solid ${store.icon}`}></i>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs font-bold text-gray-900">{store.name}</p>
-                        <p className="text-[10px] text-gray-500">{store.desc}</p>
-                      </div>
+                {STORES.map(store => (
+                  <div key={store.id} onClick={() => setPrimaryStore(store.id)} className={`p-3 rounded-xl border cursor-pointer flex items-center space-x-3 ${primaryStore === store.id ? 'border-emerald-600 bg-emerald-50' : 'border-gray-200'}`}>
+                    <i className={`fa-solid ${store.icon} text-emerald-700`}></i>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900">{store.name}</p>
+                      <p className="text-[10px] text-gray-500">{store.desc}</p>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-
-              <button 
-                onClick={() => setStep(2)}
-                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 text-sm"
-              >
-                <span>Select Meals & Sale Items</span>
-                <i className="fa-solid fa-arrow-right"></i>
-              </button>
+              <button onClick={() => setStep(2)} className="w-full bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg">Continue to Live Deals</button>
             </main>
           )}
 
-          {/* STEP 2: DYNAMIC MEAL & FLYER SELECTION */}
           {step === 2 && (
             <main className="p-4 flex-1 space-y-4">
-              <div className="flex justify-between items-center border-b pb-3">
-                <div>
-                  <h2 className="text-base font-bold text-gray-900">Step 2: Menu & Weekly Deals</h2>
-                  <p className="text-xs text-gray-500">Matched with Port Perry & North Oshawa flyers.</p>
-                </div>
-                <button 
-                  onClick={generateNewAIRecipe}
-                  disabled={isGenerating}
-                  className="text-xs font-bold bg-amber-50 text-amber-700 border border-amber-300 px-3 py-1.5 rounded-lg flex items-center space-x-1"
-                >
-                  <i className={`fa-solid fa-wand-magic-sparkles ${isGenerating ? 'animate-spin' : ''}`}></i>
-                  <span>{isGenerating ? 'Generating...' : '+ AI Idea'}</span>
-                </button>
+              <div className="border-b pb-3">
+                <h2 className="text-base font-bold text-gray-900">Step 2: Menus & Flyer Specials</h2>
+                <p className="text-xs text-emerald-700 font-semibold mt-1">
+                  <i className="fa-solid fa-bolt mr-1"></i>
+                  {loadingDeals ? 'Syncing local flyers for L9H / L1H...' : `${flyerDeals.length} active flyer specials loaded from GitHub`}
+                </p>
               </div>
-
               <div className="space-y-3">
                 {recipes.map(recipe => {
                   const isSelected = selectedRecipes.includes(recipe.id);
                   return (
-                    <div 
-                      key={recipe.id}
-                      className={`border rounded-xl overflow-hidden transition-all ${isSelected ? 'border-emerald-600 ring-2 ring-emerald-600/20 bg-white shadow-md' : 'border-gray-200 bg-gray-50/50 opacity-90'}`}
-                    >
-                      <div className="flex">
-                        <img src={recipe.image} alt={recipe.title} className="w-28 h-28 object-cover" />
-                        <div className="p-3 flex-1 flex flex-col justify-between">
-                          <div>
-                            <div className="flex justify-between items-start">
-                              <span className="text-[9px] font-extrabold uppercase text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">
-                                {recipe.category}
-                              </span>
-                              <span className="text-xs font-extrabold text-gray-800">
-                                ~${recipe.estCostPerMeal.toFixed(2)}
-                              </span>
-                            </div>
-                            <h3 className="font-bold text-xs text-gray-900 mt-1">{recipe.title}</h3>
-                            {recipe.saleBadge && (
-                              <p className="text-[10px] text-amber-700 font-semibold mt-0.5"><i className="fa-solid fa-tag mr-1"></i>{recipe.saleBadge}</p>
-                            )}
-                          </div>
-
-                          <button 
-                            onClick={() => toggleRecipe(recipe.id)}
-                            className={`w-full py-1.5 rounded-lg text-xs font-bold transition-all mt-2 ${isSelected ? 'bg-emerald-700 text-white' : 'bg-gray-200 text-gray-700'}`}
-                          >
-                            {isSelected ? '✓ Meal Selected' : '+ Select Meal'}
-                          </button>
-                        </div>
+                    <div key={recipe.id} className={`border rounded-xl p-3 flex space-x-3 ${isSelected ? 'border-emerald-600 bg-emerald-50/20 shadow' : 'border-gray-200'}`}>
+                      <img src={recipe.image} className="w-20 h-20 object-cover rounded-lg" />
+                      <div className="flex-1">
+                        <span className="text-[9px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">{recipe.category}</span>
+                        <h3 className="font-bold text-xs mt-1">{recipe.title}</h3>
+                        <p className="text-[10px] text-amber-700 font-semibold mt-1"><i className="fa-solid fa-tag mr-1"></i>{recipe.saleBadge}</p>
+                        <button onClick={() => toggleRecipe(recipe.id)} className={`mt-2 w-full py-1 text-xs font-bold rounded-lg ${isSelected ? 'bg-emerald-700 text-white' : 'bg-gray-200 text-gray-700'}`}>
+                          {isSelected ? '✓ Selected' : '+ Select Meal'}
+                        </button>
                       </div>
                     </div>
                   );
                 })}
               </div>
-
-              <button 
-                onClick={() => setStep(3)}
-                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 text-sm sticky bottom-4"
-              >
-                <span>Continue to Pantry Check</span>
-                <i className="fa-solid fa-arrow-right"></i>
-              </button>
+              <button onClick={() => setStep(3)} className="w-full bg-emerald-700 text-white font-bold py-3.5 rounded-xl">Continue to Pantry Check</button>
             </main>
           )}
 
-          {/* STEP 3: PANTRY CHECK (Remove owned staples) */}
           {step === 3 && (
             <main className="p-4 flex-1 space-y-4">
-              <div className="border-b pb-3">
-                <h2 className="text-base font-bold text-gray-900">Step 3: Pantry Check</h2>
-                <p className="text-xs text-gray-500">Uncheck items you ALREADY HAVE at home so you don't buy duplicate pantry staples.</p>
+              <h2 className="text-base font-bold text-gray-900 border-b pb-2">Step 3: Pantry Check</h2>
+              <div onClick={() => setOwnedPantryItems(prev => ({ ...prev, 'Olive Oil': !prev['Olive Oil'] }))} className={`p-3 rounded-xl border flex justify-between items-center cursor-pointer ${ownedPantryItems['Olive Oil'] ? 'bg-emerald-50 border-emerald-300' : 'bg-white'}`}>
+                <span className="text-xs font-bold">Olive Oil</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-200 text-emerald-900">{ownedPantryItems['Olive Oil'] ? 'Have at Home' : 'Need to Buy'}</span>
               </div>
-
-              <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start space-x-2">
-                <i className="fa-solid fa-circle-info text-amber-600 mt-0.5"></i>
-                <p>Checked items will be <strong>EXCLUDED</strong> from your final grocery store shopping list.</p>
-              </div>
-
-              <div className="space-y-2">
-                {Object.keys(ownedPantryItems).map(itemName => {
-                  const isOwned = ownedPantryItems[itemName];
-                  return (
-                    <div 
-                      key={itemName}
-                      onClick={() => togglePantryItem(itemName)}
-                      className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${isOwned ? 'bg-emerald-50/60 border-emerald-300' : 'bg-white border-gray-200'}`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <input 
-                          type="checkbox" 
-                          checked={isOwned} 
-                          onChange={() => {}} 
-                          className="w-4 h-4 text-emerald-600 rounded"
-                        />
-                        <span className={`text-xs font-bold ${isOwned ? 'text-emerald-900' : 'text-gray-800'}`}>
-                          {itemName}
-                        </span>
-                      </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${isOwned ? 'bg-emerald-200 text-emerald-900' : 'bg-gray-100 text-gray-600'}`}>
-                        {isOwned ? 'Already Have at Home' : 'Need to Buy'}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <button 
-                onClick={() => setStep(4)}
-                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 text-sm"
-              >
-                <span>Build Final Grocery List ({aggregatedList.length} Items)</span>
-                <i className="fa-solid fa-arrow-right"></i>
-              </button>
+              <button onClick={() => setStep(4)} className="w-full bg-emerald-700 text-white font-bold py-3.5 rounded-xl">Build Grocery List</button>
             </main>
           )}
 
-          {/* STEP 4: FINAL STORE-ORGANIZED GROCERY LIST */}
           {step === 4 && (
             <main className="p-4 flex-1 space-y-4">
-              <div className="flex justify-between items-center border-b pb-3">
-                <div>
-                  <h2 className="text-base font-bold text-gray-900">Step 4: Actionable Grocery List</h2>
-                  <p className="text-xs text-gray-500">Sorted by store & department for quick shopping.</p>
-                </div>
-                <button onClick={() => setStep(2)} className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">
-                  Edit Meals
-                </button>
-              </div>
-
-              <div className="bg-emerald-900 text-white p-3 rounded-xl flex justify-between items-center text-xs">
-                <div>
-                  <span className="text-emerald-300 font-bold block">Active Store Route:</span>
-                  <span className="font-extrabold text-sm">{STORES.find(s => s.id === primaryStore)?.name}</span>
-                </div>
-                <i className="fa-solid fa-store text-xl text-emerald-400"></i>
-              </div>
-
+              <h2 className="text-base font-bold text-gray-900 border-b pb-2">Step 4: Grocery List</h2>
               <div className="space-y-2">
-                {aggregatedList.length === 0 ? (
-                  <p className="text-center text-xs text-gray-400 py-8">No ingredients needed! You have everything in your pantry.</p>
-                ) : (
-                  aggregatedList.map(item => {
-                    const isChecked = !!checkedCartItems[item.key];
-                    return (
-                      <div 
-                        key={item.key}
-                        onClick={() => toggleCartCheck(item.key)}
-                        className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${isChecked ? 'bg-gray-100 border-gray-200 opacity-50' : 'bg-white border-gray-200 shadow-sm'}`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <input 
-                            type="checkbox" 
-                            checked={isChecked} 
-                            onChange={() => {}} 
-                            className="w-4 h-4 text-emerald-600 rounded"
-                          />
-                          <div>
-                            <p className={`text-xs font-bold ${isChecked ? 'line-through text-gray-400' : 'text-gray-900'}`}>
-                              {item.name}
-                            </p>
-                            <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded font-medium">
-                              {item.category} • {item.store.toUpperCase()}
-                            </span>
-                          </div>
-                        </div>
-                        <span className="text-xs font-black text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">
-                          ${item.price.toFixed(2)}
-                        </span>
-                      </div>
-                    );
-                  })
-                )}
+                {aggregatedList.map(item => (
+                  <div key={item.key} onClick={() => setCheckedCartItems(prev => ({ ...prev, [item.key]: !prev[item.key] }))} className={`p-3 rounded-xl border flex justify-between items-center cursor-pointer ${checkedCartItems[item.key] ? 'opacity-40 bg-gray-100' : 'bg-white'}`}>
+                    <div>
+                      <p className="text-xs font-bold">{item.name}</p>
+                      <p className="text-[10px] text-gray-500">{item.store.toUpperCase()}</p>
+                    </div>
+                    <span className="text-xs font-black text-emerald-700">${item.price.toFixed(2)}</span>
+                  </div>
+                ))}
               </div>
-
-              <div className="pt-2 space-y-2">
-                <button 
-                  onClick={() => alert('Order simulation initialized! Sending ingredients to PC Express (Vos YIG), Walmart North Oshawa, and Costco/Instacart.')}
-                  className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow-md transition-all text-xs flex items-center justify-center space-x-2"
-                >
-                  <i className="fa-solid fa-cart-arrow-down"></i>
-                  <span>Send Carts to Stores</span>
-                </button>
-                
-                <button 
-                  onClick={() => setStep(1)}
-                  className="w-full bg-gray-100 text-gray-700 font-bold py-2.5 rounded-xl text-xs hover:bg-gray-200"
-                >
-                  Start New Weekly Plan
-                </button>
-              </div>
+              <button onClick={() => setStep(1)} className="w-full bg-gray-100 text-gray-700 font-bold py-2.5 rounded-xl text-xs">Start New Plan</button>
             </main>
           )}
         </div>
       );
     }
-
     ReactDOM.render(<App />, document.getElementById('root'));
   </script>
 </body>
